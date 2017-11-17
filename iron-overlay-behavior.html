@@ -657,6 +657,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       if (this.__isAnimating) {
         return;
       }
+      // Check if scroll outside the overlay.
+      if (Polymer.dom(event).path.indexOf(this) >= 0) {
+        return;
+      }
       switch (this.scrollAction) {
         case 'lock':
           // NOTE: scrolling might happen if a scroll event is not cancellable, or if
