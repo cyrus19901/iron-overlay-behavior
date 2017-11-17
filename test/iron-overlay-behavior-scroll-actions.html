@@ -27,14 +27,28 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <body>
 
-  <div style="width: 150vmax; height: 150vmax">
+  <style>
+    .scrollable {
+      overflow: auto;
+      width: 200px;
+      height: 200px;
+    }
+    .big {
+      width: 150vmax;
+      height: 150vmax;
+    }
+  </style>
+
+  <div class="big">
     This element makes the page scrollable.
   </div>
 
   <test-fixture id="basic">
     <template>
-      <test-overlay>
-        Basic Overlay
+      <test-overlay class="scrollable">
+        <div class="big">
+          This element makes the overlay scrollable.
+        </div>
       </test-overlay>
     </template>
   </test-fixture>
@@ -116,19 +130,31 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         });
       });
 
-      test('refit scrollAction refits the overlay', function(done) {
+      test('refit scrollAction refits the overlay on scroll outside', function(done) {
         overlay.scrollAction = 'refit';
         runAfterOpen(overlay, function() {
           var refitSpy = sinon.spy(overlay, 'refit');
           dispatchScroll(scrollTarget, 0, 10);
           Polymer.RenderStatus.afterNextRender(overlay, function() {
-            assert.notEqual(refitSpy.callCount, 0, 'did refit on scroll');
+            assert.notEqual(refitSpy.callCount, 0, 'did refit on scroll outside');
             done();
           });
         });
       });
 
-      test('cancel scrollAction cancels/closes the overlay on scroll', function(done) {
+      test('refit scrollAction does NOT refit the overlay on scroll inside', function(done) {
+        overlay.scrollAction = 'refit';
+        runAfterOpen(overlay, function() {
+          var refitSpy = sinon.spy(overlay, 'refit');
+          dispatchScroll(overlay, 0, 10);
+          Polymer.RenderStatus.afterNextRender(overlay, function() {
+            assert.equal(refitSpy.callCount, 0, 'did not refit on scroll inside');
+            done();
+          });
+        });
+      });
+
+      test('cancel scrollAction closes the overlay on scroll outside', function(done) {
         overlay.scrollAction = 'cancel';
         runAfterOpen(overlay, function() {
           overlay.addEventListener('iron-overlay-canceled', function(event) {
@@ -139,6 +165,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             done();
           });
           dispatchScroll(scrollTarget, 0, 10);
+        });
+      });
+
+      test('cancel scrollAction does NOT close the overlay on scroll inside', function(done) {
+        overlay.scrollAction = 'cancel';
+        runAfterOpen(overlay, function() {
+          dispatchScroll(overlay, 0, 10);
+          assert.isTrue(overlay.opened, 'overlay was not closed');
+          done();
         });
       });
 
